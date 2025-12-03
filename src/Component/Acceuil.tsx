@@ -16,7 +16,7 @@ const Accueil: React.FC = () => {
               Prix Alassane Ouattara
             </h1>
             <h2 className="text-3xl font-semibold text-orange-500">
-              Passeport-Compétences 2024
+              Passeport-Compétences 2025-2026
             </h2>
           </div>
 
@@ -28,9 +28,9 @@ const Accueil: React.FC = () => {
                   {step}
                 </div>
                 <span className="text-sm font-medium text-gray-700 mt-2 max-w-24 text-center">
-                  {step === 1 && 'Informations'}
-                  {step === 2 && 'Soumission'}
-                  {step === 3 && 'Confirmation'}
+                  {step === 1 && 'Règlement'}
+                  {step === 2 && 'Candidature'}
+                  {step === 3 && 'Soumission'}
                 </span>
               </div>
             ))}
@@ -42,20 +42,21 @@ const Accueil: React.FC = () => {
             la reconnaissance de votre travail exceptionnel."
           </p>
 
-          {/* Bouton Principal - Candidater */}
+          {/* Bouton Principal - Voir le Règlement */}
           <div className="pt-8">
             <button
-              onClick={() => navigate('/candidater')}
+              onClick={() => navigate('/reglement')}
               className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-4 px-12 rounded-xl text-lg transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center gap-3 mx-auto"
             >
               <Award className="w-6 h-6" />
-              Candidater Maintenant
+              Commencer ma candidature
               <ArrowRight className="w-5 h-5" />
             </button>
           </div>
 
-          {/* Bouton Secondaire - Accès Admin */}
-          
+          <p className="text-sm text-gray-500 mt-2">
+            Consultez d'abord le règlement avant de soumettre votre candidature
+          </p>
 
           {/* Features */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pt-16">
@@ -83,18 +84,20 @@ const Accueil: React.FC = () => {
               </p>
             </div>
           </div>
-          <div className="pt-6">
+
+          {/* Bouton d'accès admin/jury */}
+          <div className="pt-10">
             <button
               onClick={() => navigate('/identification')}
-              className="text-gray-600 bg-green-400 hover:bg-green-800 font-medium py-2 px-4 rounded-lg transition-all flex items-center gap-2 mx-auto hover:text-green-100"
+              className="text-gray-600 bg-green-400 hover:bg-green-700 border border-green-200 font-medium py-3 px-6 rounded-lg transition-all flex items-center gap-2 mx-auto hover:text-green-700"
             >
               <Shield className="w-4 h-4" />
               Vous êtes Jury ou Secrétaire Technique ?
             </button>
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="text-sm text-gray-500 mt-2">
               Cliquez ici pour accéder à votre espace dédié
             </p>
-          </div>
+          </div>  
         </div>
       </div>
     </div>

@@ -1,6 +1,16 @@
-import React from 'react';
-import type { CandidatFormData, LienRealisation } from '../Types/form';
-import { Link, FileText, Video, Plus, Trash2 } from 'lucide-react';
+import React, { useState } from 'react';
+import type { CandidatFormData } from '../Types/form';
+import { 
+  FileText, 
+  Plus, 
+  Trash2, 
+  Calendar, 
+  Link as LinkIcon,
+  Globe,
+  BookOpen,
+  AlertCircle,
+  Info
+} from 'lucide-react';
 
 interface Props {
   donnees: CandidatFormData;
@@ -8,38 +18,95 @@ interface Props {
   onChampChange: (nom: keyof CandidatFormData, valeur: any) => void;
 }
 
+// Nouvelle interface pour les œuvres
+interface Oeuvre {
+  id: string;
+  titre: string;
+  datePublication: string;
+  media: string;
+  categorie: string;
+  url: string;
+  resume: string;
+}
+
 const SoumissionRealisation: React.FC<Props> = ({ donnees, onChampChange }) => {
+  const [oeuvres, setOeuvres] = useState<Oeuvre[]>([]);
+
   const categories = [
     'Reportage',
-    'Interview',
-    'Documentaire',
     'Enquête',
-    'Editorial',
-    'Portfolio Photo',
+    'Dossier',
+    'Interview',
+    'Éditorial',
+    'Chronique',
+    'Portrait',
+    'Documentaire',
     'Podcast',
-    'Vidéo Reportage'
+    'Reportage photo'
   ];
 
-  const ajouterLien = () => {
-    const nouveauLien: LienRealisation = {
+  const medias = [
+    'Presse écrite',
+    'Radio',
+    'Télévision',
+    'Presse en ligne',
+    'Blog professionnel',
+    'Média social',
+    'Plateforme vidéo',
+    'Autre'
+  ];
+
+  const ajouterOeuvre = () => {
+    if (oeuvres.length >= 3) {
+      alert('Vous ne pouvez pas ajouter plus de 3 œuvres. La limite maximale est atteinte.');
+      return;
+    }
+    
+    const nouvelleOeuvre: Oeuvre = {
       id: Date.now().toString(),
+      titre: '',
+      datePublication: '',
+      media: '',
+      categorie: '',
       url: '',
-      description: ''
+      resume: ''
     };
-    onChampChange('liensRealisation', [...donnees.liensRealisation, nouveauLien]);
+    setOeuvres([...oeuvres, nouvelleOeuvre]);
   };
 
-  const supprimerLien = (id: string) => {
-    const nouveauxLiens = donnees.liensRealisation.filter(lien => lien.id !== id);
-    onChampChange('liensRealisation', nouveauxLiens);
+  const supprimerOeuvre = (id: string) => {
+    setOeuvres(oeuvres.filter(oeuvre => oeuvre.id !== id));
   };
 
-  const modifierLien = (id: string, champ: keyof LienRealisation, valeur: string) => {
-    const nouveauxLiens = donnees.liensRealisation.map(lien =>
-      lien.id === id ? { ...lien, [champ]: valeur } : lien
+  const modifierOeuvre = (id: string, champ: keyof Oeuvre, valeur: string) => {
+    const nouvellesOeuvres = oeuvres.map(oeuvre =>
+      oeuvre.id === id ? { ...oeuvre, [champ]: valeur } : oeuvre
     );
-    onChampChange('liensRealisation', nouveauxLiens);
+    setOeuvres(nouvellesOeuvres);
   };
+
+  const handleDateChange = (id: string, value: string) => {
+    // Formatage automatique JJ/MM/AAAA
+    let formattedValue = value.replace(/\D/g, '');
+    
+    if (formattedValue.length >= 2) {
+      formattedValue = formattedValue.slice(0, 2) + '/' + formattedValue.slice(2);
+    }
+    if (formattedValue.length >= 5) {
+      formattedValue = formattedValue.slice(0, 5) + '/' + formattedValue.slice(5, 9);
+    }
+    
+    modifierOeuvre(id, 'datePublication', formattedValue);
+  };
+
+  // Mettre à jour les données du formulaire principal
+  React.useEffect(() => {
+    onChampChange('liensRealisation', oeuvres.map(oeuvre => ({
+      id: oeuvre.id,
+      url: oeuvre.url,
+      description: `${oeuvre.titre} | ${oeuvre.categorie} | ${oeuvre.media}`
+    })));
+  }, [oeuvres, onChampChange]);
 
   return (
     <div className="space-y-8">
@@ -49,128 +116,211 @@ const SoumissionRealisation: React.FC<Props> = ({ donnees, onChampChange }) => {
           Votre Réalisation
         </h2>
         <p className="text-gray-600 mt-2">
-          Partagez vos œuvres journalistiques - Vous pouvez ajouter plusieurs liens
+          Ajoutez vos œuvres journalistiques (maximum 3 œuvres)
         </p>
       </div>
 
       <div className="max-w-4xl mx-auto space-y-8">
-        {/* Informations générales */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Titre de votre réalisation *
-            </label>
-            <input
-              type="text"
-              value={donnees.titreRealisation}
-              onChange={(e) => onChampChange('titreRealisation', e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
-              placeholder="Ex: L'impact de la formation professionnelle dans la société"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Catégorie *
-            </label>
-            <select
-              value={donnees.categorie}
-              onChange={(e) => onChampChange('categorie', e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
-            >
-              <option value="">Sélectionnez une catégorie</option>
-              {categories.map((categorie) => (
-                <option key={categorie} value={categorie}>{categorie}</option>
-              ))}
-            </select>
+        {/* Information sur la limite */}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="flex items-start gap-3">
+            <Info className="w-5 h-5 text-blue-600 mt-0.5" />
+            <div>
+              <h4 className="font-semibold text-blue-800">Instructions importantes</h4>
+              <ul className="text-blue-700 text-sm mt-1 space-y-1 list-disc pl-5">
+                <li>Vous pouvez soumettre jusqu'à 3 œuvres maximum</li>
+                <li>Chaque œuvre doit avoir été publiée entre le 1er janvier 2025 et le 31 décembre 2025</li>
+                <li>Tous les champs marqués d'un astérisque (*) sont obligatoires</li>
+                <li>Assurez-vous que les liens URL sont actifs et accessibles</li>
+              </ul>
+            </div>
           </div>
         </div>
 
-        {/* Description générale */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Description générale de votre réalisation
-          </label>
-          <textarea
-            value={donnees.descriptionGenerale}
-            onChange={(e) => onChampChange('descriptionGenerale', e.target.value)}
-            rows={3}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
-            placeholder="Décrivez le contexte global, l'objectif et l'impact de votre travail..."
-          />
+        {/* Compteur d'œuvres */}
+        <div className="flex justify-between items-center bg-gray-50 p-4 rounded-lg">
+          <div className="text-sm text-gray-700">
+            <span className="font-medium">Œuvres ajoutées :</span> {oeuvres.length}/3
+          </div>
+          <button
+            type="button"
+            onClick={ajouterOeuvre}
+            disabled={oeuvres.length >= 3}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
+              oeuvres.length >= 3
+                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                : 'bg-orange-500 text-white hover:bg-orange-600'
+            }`}
+          >
+            <Plus className="w-4 h-4" />
+            Ajouter une œuvre
+          </button>
         </div>
 
-        {/* Liens des réalisations */}
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <label className="block text-sm font-medium text-gray-700">
-              <Link className="w-4 h-4 inline mr-2" />
-              Liens vers vos réalisations *
-            </label>
-            <button
-              type="button"
-              onClick={ajouterLien}
-              className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-sm"
-            >
-              <Plus className="w-4 h-4" />
-              Ajouter un lien
-            </button>
-          </div>
-
-          {donnees.liensRealisation.length === 0 ? (
-            <div className="text-center py-8 border-2 border-dashed border-gray-300 rounded-lg">
-              <Link className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-              <p className="text-gray-500">Aucun lien ajouté</p>
-              <p className="text-sm text-gray-400 mt-1">
-                Cliquez sur "Ajouter un lien" pour commencer
+        {/* Message si limite atteinte */}
+        {oeuvres.length >= 3 && (
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+            <div className="flex items-center gap-3">
+              <AlertCircle className="w-5 h-5 text-amber-600" />
+              <p className="text-amber-800 text-sm font-medium">
+                Limite atteinte : Vous avez ajouté 3 œuvres. Vous ne pouvez pas en ajouter davantage.
               </p>
             </div>
+          </div>
+        )}
+
+        {/* Liste des œuvres */}
+        <div className="space-y-6">
+          {oeuvres.length === 0 ? (
+            <div className="text-center py-10 border-2 border-dashed border-gray-300 rounded-lg">
+              <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-600 mb-2">
+                Aucune œuvre ajoutée
+              </h3>
+              <p className="text-gray-500 max-w-md mx-auto mb-6">
+                Commencez par ajouter votre première œuvre journalistique en cliquant sur le bouton "Ajouter une œuvre"
+              </p>
+              <button
+                type="button"
+                onClick={ajouterOeuvre}
+                className="flex items-center gap-2 px-6 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors mx-auto"
+              >
+                <Plus className="w-5 h-5" />
+                Ajouter votre première œuvre
+              </button>
+            </div>
           ) : (
-            <div className="space-y-4">
-              {donnees.liensRealisation.map((lien, index) => (
-                <div key={lien.id} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
-                  <div className="flex items-start justify-between mb-3">
-                    <h4 className="font-medium text-gray-800 flex items-center gap-2">
-                      <Video className="w-4 h-4 text-orange-500" />
-                      Lien {index + 1}
-                    </h4>
-                    {donnees.liensRealisation.length > 1 && (
+            <div className="space-y-6">
+              {oeuvres.map((oeuvre, index) => (
+                <div key={oeuvre.id} className="border border-gray-200 rounded-xl bg-white shadow-sm overflow-hidden">
+                  {/* En-tête de l'œuvre */}
+                  <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
+                          <span className="text-orange-600 font-bold">{index + 1}</span>
+                        </div>
+                        <h3 className="font-bold text-gray-800">
+                          Œuvre {index + 1} {oeuvre.titre && `: ${oeuvre.titre}`}
+                        </h3>
+                      </div>
                       <button
                         type="button"
-                        onClick={() => supprimerLien(lien.id)}
-                        className="text-red-500 hover:text-red-700 transition-colors"
+                        onClick={() => supprimerOeuvre(oeuvre.id)}
+                        className="text-red-500 hover:text-red-700 transition-colors p-1"
+                        title="Supprimer cette œuvre"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash2 className="w-5 h-5" />
                       </button>
-                    )}
+                    </div>
                   </div>
 
-                  <div className="space-y-3">
+                  {/* Contenu de l'œuvre */}
+                  <div className="p-4 md:p-6 space-y-4">
+                    {/* Titre de l'œuvre */}
                     <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">
-                        URL *
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        1. Titre de l'œuvre *
                       </label>
                       <input
-                        type="url"
-                        value={lien.url}
-                        onChange={(e) => modifierLien(lien.id, 'url', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all text-sm"
-                        placeholder="https://example.com/votre-article"
+                        type="text"
+                        value={oeuvre.titre}
+                        onChange={(e) => modifierOeuvre(oeuvre.id, 'titre', e.target.value)}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
+                        placeholder="Ex: La formation professionnelle, clé de l'insertion des jeunes"
                         required
                       />
                     </div>
 
+                    {/* Date et média sur la même ligne sur desktop */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className=" text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                          <Calendar className="w-4 h-4 text-gray-500" />
+                          Date de publication *
+                        </label>
+                        <input
+                          type="text"
+                          value={oeuvre.datePublication}
+                          onChange={(e) => handleDateChange(oeuvre.id, e.target.value)}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
+                          placeholder="JJ/MM/AAAA"
+                          maxLength={10}
+                          required
+                        />
+                        <p className="text-xs text-gray-500 mt-1">Format : JJ/MM/AAAA</p>
+                      </div>
+
+                      <div>
+                        <label className=" text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                          <Globe className="w-4 h-4 text-gray-500" />
+                          Média de publication *
+                        </label>
+                        <select
+                          value={oeuvre.media}
+                          onChange={(e) => modifierOeuvre(oeuvre.id, 'media', e.target.value)}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
+                          required
+                        >
+                          <option value="">Sélectionnez un média</option>
+                          {medias.map((media) => (
+                            <option key={media} value={media}>{media}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* Catégorie et URL sur la même ligne sur desktop */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Catégorie *
+                        </label>
+                        <select
+                          value={oeuvre.categorie}
+                          onChange={(e) => modifierOeuvre(oeuvre.id, 'categorie', e.target.value)}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
+                          required
+                        >
+                          <option value="">Sélectionnez une catégorie</option>
+                          {categories.map((categorie) => (
+                            <option key={categorie} value={categorie}>{categorie}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className=" text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                          <LinkIcon className="w-4 h-4 text-gray-500" />
+                          Lien URL direct vers l'œuvre *
+                        </label>
+                        <input
+                          type="url"
+                          value={oeuvre.url}
+                          onChange={(e) => modifierOeuvre(oeuvre.id, 'url', e.target.value)}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
+                          placeholder="https://example.com/votre-article"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    {/* Résumé de l'œuvre */}
                     <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">
-                        Description de ce lien
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Résumé de l'œuvre *
                       </label>
                       <textarea
-                        value={lien.description}
-                        onChange={(e) => modifierLien(lien.id, 'description', e.target.value)}
-                        rows={2}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all text-sm"
-                        placeholder="Décrivez ce contenu spécifique (ex: interview principale, reportage complémentaire...)"
+                        value={oeuvre.resume}
+                        onChange={(e) => modifierOeuvre(oeuvre.id, 'resume', e.target.value)}
+                        rows={3}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
+                        placeholder="Décrivez brièvement le contenu, l'angle abordé et les principaux éléments de votre œuvre..."
+                        required
                       />
+                      <p className="text-xs text-gray-500 mt-1">
+                        200-300 mots recommandés
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -179,17 +329,66 @@ const SoumissionRealisation: React.FC<Props> = ({ donnees, onChampChange }) => {
           )}
         </div>
 
-        {/* Information sur les formats */}
-        <div className="bg-green-50 border border-green-200 p-4 rounded-lg">
-          <div className="flex items-start gap-3">
-            <Video className="w-5 h-5 text-green-600 mt-0.5" />
-            <div>
-              <h4 className="font-semibold text-green-800">Formats acceptés</h4>
-              <p className="text-green-700 text-sm mt-1">
-                Articles web, vidéos YouTube/Vimeo, podcasts, portfolios photo, 
-                documents PDF. Vous pouvez ajouter plusieurs liens pour montrer 
-                l'étendue de votre travail (ex: article principal + interview + portfolio photo).
+        {/* Section description générale (seulement si des œuvres sont ajoutées) */}
+        {oeuvres.length > 0 && (
+          <div className="space-y-6 pt-4 border-t border-gray-200">
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <h3 className="text-lg font-bold text-gray-800 mb-3 flex items-center gap-2">
+                <FileText className="w-5 h-5 text-orange-500" />
+                Description générale de votre réalisation
+              </h3>
+              <p className="text-gray-600 text-sm mb-4">
+                Cette description permet de contextualiser l'ensemble de vos œuvres et de mettre en avant 
+                votre démarche journalistique globale.
               </p>
+              <textarea
+                value={donnees.descriptionGenerale}
+                onChange={(e) => onChampChange('descriptionGenerale', e.target.value)}
+                rows={4}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
+                placeholder="Décrivez votre démarche journalistique globale, l'objectif commun de vos œuvres, leur cohérence thématique et l'impact recherché..."
+              />
+              <p className="text-xs text-gray-500 mt-2">
+                300-500 mots recommandés - Ce champ est obligatoire
+              </p>
+            </div>
+
+            {/* Section bibliographie */}
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <h3 className="text-lg font-bold text-gray-800 mb-3 flex items-center gap-2">
+                <BookOpen className="w-5 h-5 text-orange-500" />
+                Bibliographie / Sources complémentaires
+              </h3>
+              <p className="text-gray-600 text-sm mb-4">
+                Si votre réalisation s'appuie sur des sources, études ou références spécifiques, 
+                vous pouvez les mentionner ici.
+              </p>
+              <textarea
+                value={donnees.titreRealisation} // À adapter selon votre structure de données
+                onChange={(e) => onChampChange('titreRealisation', e.target.value)}
+                rows={3}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
+                placeholder="Listez ici vos principales sources, références bibliographiques, études ou personnes interviewées..."
+              />
+              <p className="text-xs text-gray-500 mt-2">
+                Ce champ est optionnel mais recommandé pour les travaux d'investigation
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Note finale */}
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-green-600 mt-0.5" />
+            <div>
+              <h4 className="font-semibold text-green-800 mb-2">Vérification avant soumission</h4>
+              <ul className="text-green-700 text-sm space-y-1">
+                <li>✓ Vérifiez que tous les champs obligatoires sont remplis</li>
+                <li>✓ Assurez-vous que les dates de publication sont comprises entre 01/01/2025 et 31/12/2025</li>
+                <li>✓ Testez vos liens URL pour confirmer qu'ils sont accessibles</li>
+                <li>✓ Relisez vos descriptions et résumés pour éviter les fautes</li>
+              </ul>
             </div>
           </div>
         </div>
