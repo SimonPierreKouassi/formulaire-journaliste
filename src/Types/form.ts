@@ -11,10 +11,12 @@ export interface CandidatFormData {
   linkedin: string;           // URL LinkedIn (optionnel)
   
   // Étape 2 - Soumission
-  titreRealisation: string;
-  categorie: string;
+  titreRealisation: string;   // Ancien champ, gardé pour compatibilité
+  bibliographie: string;      // Nouveau champ pour la bibliographie
+  categorie: string;          // Ancien champ, gardé pour compatibilité
   descriptionGenerale: string;
   liensRealisation: LienRealisation[];
+  participePrixJeune: boolean;
 
   // Étape 3 - Déclarations
   acceptationReglement: boolean;

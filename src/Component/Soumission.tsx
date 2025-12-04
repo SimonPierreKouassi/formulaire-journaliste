@@ -1,15 +1,18 @@
 import React, { useState } from 'react';
 import type { CandidatFormData } from '../Types/form';
-import { 
-  FileText, 
-  Plus, 
-  Trash2, 
-  Calendar, 
+import {
+  FileText,
+  Plus,
+  Trash2,
+  Calendar,
   Link as LinkIcon,
   Globe,
   BookOpen,
   AlertCircle,
-  Info
+  Info,
+  CheckCircle,
+  XCircle,
+  Award
 } from 'lucide-react';
 
 interface Props {
@@ -18,7 +21,7 @@ interface Props {
   onChampChange: (nom: keyof CandidatFormData, valeur: any) => void;
 }
 
-// Nouvelle interface pour les œuvres
+// Interface pour les œuvres
 interface Oeuvre {
   id: string;
   titre: string;
@@ -56,12 +59,24 @@ const SoumissionRealisation: React.FC<Props> = ({ donnees, onChampChange }) => {
     'Autre'
   ];
 
+  // Fonction de validation d'une œuvre
+  const validerOeuvre = (oeuvre: Oeuvre): boolean => {
+    return (
+      oeuvre.titre.trim() !== '' &&
+      oeuvre.datePublication.trim() !== '' &&
+      oeuvre.media.trim() !== '' &&
+      oeuvre.categorie.trim() !== '' &&
+      oeuvre.url.trim() !== '' &&
+      oeuvre.resume.trim() !== ''
+    );
+  };
+
   const ajouterOeuvre = () => {
     if (oeuvres.length >= 3) {
       alert('Vous ne pouvez pas ajouter plus de 3 œuvres. La limite maximale est atteinte.');
       return;
     }
-    
+
     const nouvelleOeuvre: Oeuvre = {
       id: Date.now().toString(),
       titre: '',
@@ -88,25 +103,34 @@ const SoumissionRealisation: React.FC<Props> = ({ donnees, onChampChange }) => {
   const handleDateChange = (id: string, value: string) => {
     // Formatage automatique JJ/MM/AAAA
     let formattedValue = value.replace(/\D/g, '');
-    
+
     if (formattedValue.length >= 2) {
       formattedValue = formattedValue.slice(0, 2) + '/' + formattedValue.slice(2);
     }
     if (formattedValue.length >= 5) {
       formattedValue = formattedValue.slice(0, 5) + '/' + formattedValue.slice(5, 9);
     }
-    
+
     modifierOeuvre(id, 'datePublication', formattedValue);
   };
 
   // Mettre à jour les données du formulaire principal
   React.useEffect(() => {
+    // Mettre à jour liensRealisation avec les œuvres
     onChampChange('liensRealisation', oeuvres.map(oeuvre => ({
       id: oeuvre.id,
       url: oeuvre.url,
       description: `${oeuvre.titre} | ${oeuvre.categorie} | ${oeuvre.media}`
     })));
-  }, [oeuvres, onChampChange]);
+
+    // S'assurer que descriptionGenerale est toujours définie
+    if (donnees.descriptionGenerale === undefined) {
+      onChampChange('descriptionGenerale', '');
+    }
+  }, [oeuvres, onChampChange, donnees.descriptionGenerale]);
+
+  // Compter les œuvres complètes
+  const oeuvresCompletes = oeuvres.filter(validerOeuvre).length;
 
   return (
     <div className="space-y-8">
@@ -137,20 +161,24 @@ const SoumissionRealisation: React.FC<Props> = ({ donnees, onChampChange }) => {
           </div>
         </div>
 
-        {/* Compteur d'œuvres */}
+        {/* Compteur d'œuvres avec statut */}
         <div className="flex justify-between items-center bg-gray-50 p-4 rounded-lg">
           <div className="text-sm text-gray-700">
             <span className="font-medium">Œuvres ajoutées :</span> {oeuvres.length}/3
+            {oeuvres.length > 0 && (
+              <span className={`ml-2 ${oeuvresCompletes === oeuvres.length ? 'text-green-600' : 'text-amber-600'}`}>
+                ({oeuvresCompletes}/{oeuvres.length} complètes)
+              </span>
+            )}
           </div>
           <button
             type="button"
             onClick={ajouterOeuvre}
             disabled={oeuvres.length >= 3}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
-              oeuvres.length >= 3
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${oeuvres.length >= 3
                 ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                 : 'bg-orange-500 text-white hover:bg-orange-600'
-            }`}
+              }`}
           >
             <Plus className="w-4 h-4" />
             Ajouter une œuvre
@@ -197,12 +225,29 @@ const SoumissionRealisation: React.FC<Props> = ({ donnees, onChampChange }) => {
                   <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
-                          <span className="text-orange-600 font-bold">{index + 1}</span>
+                        <div className={`w-8 h-8 ${validerOeuvre(oeuvre) ? 'bg-green-100' : 'bg-orange-100'} rounded-lg flex items-center justify-center`}>
+                          <span className={`font-bold ${validerOeuvre(oeuvre) ? 'text-green-600' : 'text-orange-600'}`}>
+                            {index + 1}
+                          </span>
                         </div>
-                        <h3 className="font-bold text-gray-800">
-                          Œuvre {index + 1} {oeuvre.titre && `: ${oeuvre.titre}`}
-                        </h3>
+                        <div>
+                          <h3 className="font-bold text-gray-800">
+                            Œuvre {index + 1} {oeuvre.titre && `: ${oeuvre.titre}`}
+                          </h3>
+                          <div className="flex items-center gap-2 mt-1">
+                            {validerOeuvre(oeuvre) ? (
+                              <span className="flex items-center gap-1 text-xs text-green-600">
+                                <CheckCircle className="w-3 h-3" />
+                                Complète
+                              </span>
+                            ) : (
+                              <span className="flex items-center gap-1 text-xs text-amber-600">
+                                <XCircle className="w-3 h-3" />
+                                À compléter
+                              </span>
+                            )}
+                          </div>
+                        </div>
                       </div>
                       <button
                         type="button"
@@ -235,7 +280,7 @@ const SoumissionRealisation: React.FC<Props> = ({ donnees, onChampChange }) => {
                     {/* Date et média sur la même ligne sur desktop */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className=" text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                        <label className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
                           <Calendar className="w-4 h-4 text-gray-500" />
                           Date de publication *
                         </label>
@@ -252,7 +297,7 @@ const SoumissionRealisation: React.FC<Props> = ({ donnees, onChampChange }) => {
                       </div>
 
                       <div>
-                        <label className=" text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                        <label className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
                           <Globe className="w-4 h-4 text-gray-500" />
                           Média de publication *
                         </label>
@@ -290,7 +335,7 @@ const SoumissionRealisation: React.FC<Props> = ({ donnees, onChampChange }) => {
                       </div>
 
                       <div>
-                        <label className=" text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                        <label className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
                           <LinkIcon className="w-4 h-4 text-gray-500" />
                           Lien URL direct vers l'œuvre *
                         </label>
@@ -335,22 +380,31 @@ const SoumissionRealisation: React.FC<Props> = ({ donnees, onChampChange }) => {
             <div className="bg-gray-50 p-4 rounded-lg">
               <h3 className="text-lg font-bold text-gray-800 mb-3 flex items-center gap-2">
                 <FileText className="w-5 h-5 text-orange-500" />
-                Description générale de votre réalisation
+                Description générale de votre réalisation *
               </h3>
               <p className="text-gray-600 text-sm mb-4">
-                Cette description permet de contextualiser l'ensemble de vos œuvres et de mettre en avant 
-                votre démarche journalistique globale.
+                Cette description permet de contextualiser l'ensemble de vos œuvres et de mettre en avant
+                votre démarche journalistique globale. <span className="text-red-500 font-medium">Ce champ est obligatoire.</span>
               </p>
               <textarea
-                value={donnees.descriptionGenerale}
+                value={donnees.descriptionGenerale || ''}
                 onChange={(e) => onChampChange('descriptionGenerale', e.target.value)}
                 rows={4}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
                 placeholder="Décrivez votre démarche journalistique globale, l'objectif commun de vos œuvres, leur cohérence thématique et l'impact recherché..."
+                required
               />
-              <p className="text-xs text-gray-500 mt-2">
-                300-500 mots recommandés - Ce champ est obligatoire
-              </p>
+              <div className="flex justify-between items-center mt-2">
+                <p className="text-xs text-gray-500">
+                  300-500 mots recommandés
+                </p>
+                {(!donnees.descriptionGenerale || donnees.descriptionGenerale.trim() === '') && (
+                  <p className="text-xs text-red-500 font-medium flex items-center gap-1">
+                    <AlertCircle className="w-3 h-3" />
+                    Ce champ est obligatoire
+                  </p>
+                )}
+              </div>
             </div>
 
             {/* Section bibliographie */}
@@ -360,12 +414,12 @@ const SoumissionRealisation: React.FC<Props> = ({ donnees, onChampChange }) => {
                 Bibliographie / Sources complémentaires
               </h3>
               <p className="text-gray-600 text-sm mb-4">
-                Si votre réalisation s'appuie sur des sources, études ou références spécifiques, 
+                Si votre réalisation s'appuie sur des sources, études ou références spécifiques,
                 vous pouvez les mentionner ici.
               </p>
               <textarea
-                value={donnees.titreRealisation} // À adapter selon votre structure de données
-                onChange={(e) => onChampChange('titreRealisation', e.target.value)}
+                value={donnees.bibliographie || ''}
+                onChange={(e) => onChampChange('bibliographie', e.target.value)}
                 rows={3}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
                 placeholder="Listez ici vos principales sources, références bibliographiques, études ou personnes interviewées..."
@@ -374,6 +428,84 @@ const SoumissionRealisation: React.FC<Props> = ({ donnees, onChampChange }) => {
                 Ce champ est optionnel mais recommandé pour les travaux d'investigation
               </p>
             </div>
+
+          </div>
+        )}
+
+        {/* Question pour le Prix Spécial Jeune Journaliste */}
+        {oeuvres.length > 0 && (
+          <div className="bg-linear-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-lg p-5">
+            <h3 className="text-lg font-bold text-gray-800 mb-3 flex items-center gap-2">
+              <Award className="w-5 h-5 text-amber-600" />
+              Prix Spécial Jeune Journaliste
+            </h3>
+
+            <div className="mb-4">
+              <p className="text-amber-800 font-medium mb-2">
+                Souhaitez-vous être également considéré(e) pour le Prix Spécial Jeune Journaliste ? *
+              </p>
+              <p className="text-gray-600 text-sm mb-4">
+                Ce prix est destiné aux journalistes de moins de 35 ans OU ayant moins de 3 ans d'expérience professionnelle.
+                Dotation : <span className="font-bold text-green-600">300 000 FCFA + Trophée</span>
+              </p>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-4">
+              <label className="flex-1 cursor-pointer">
+                <input
+                  type="radio"
+                  name="prixJeune"
+                  value="oui"
+                  checked={donnees.categorie === 'oui_prix_jeune'}
+                  onChange={() => onChampChange('categorie', 'oui_prix_jeune')}
+                  className="hidden"
+                />
+                <div className={`p-4 rounded-lg border-2 transition-all ${donnees.categorie === 'oui_prix_jeune' ? 'border-green-500 bg-green-50' : 'border-gray-300 bg-white hover:border-amber-300'}`}>
+                  <div className="flex items-center gap-3">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${donnees.categorie === 'oui_prix_jeune' ? 'bg-green-100' : 'bg-gray-100'}`}>
+                      {donnees.categorie === 'oui_prix_jeune' ? (
+                        <CheckCircle className="w-5 h-5 text-green-600" />
+                      ) : (
+                        <div className="w-4 h-4 border-2 border-gray-400 rounded-full"></div>
+                      )}
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-800">Oui</span>
+                      <p className="text-sm text-gray-600 mt-1">Je souhaite participer au Prix Jeune</p>
+                    </div>
+                  </div>
+                </div>
+              </label>
+
+              <label className="flex-1 cursor-pointer">
+                <input
+                  type="radio"
+                  name="prixJeune"
+                  value="non"
+                  checked={donnees.categorie === 'non_prix_jeune' || !donnees.categorie.includes('prix_jeune')}
+                  onChange={() => onChampChange('categorie', 'non_prix_jeune')}
+                  className="hidden"
+                />
+                <div className={`p-4 rounded-lg border-2 transition-all ${donnees.categorie === 'non_prix_jeune' ? 'border-red-500 bg-red-50' : 'border-gray-300 bg-white hover:border-amber-300'}`}>
+                  <div className="flex items-center gap-3">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${donnees.categorie === 'non_prix_jeune' ? 'bg-red-100' : 'bg-gray-100'}`}>
+                      {donnees.categorie === 'non_prix_jeune' ? (
+                        <XCircle className="w-5 h-5 text-red-600" />
+                      ) : (
+                        <div className="w-4 h-4 border-2 border-gray-400 rounded-full"></div>
+                      )}
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-800">Non</span>
+                      <p className="text-sm text-gray-600 mt-1">Je ne souhaite pas participer</p>
+                    </div>
+                  </div>
+                </div>
+              </label>
+            </div>
+
+
+
           </div>
         )}
 

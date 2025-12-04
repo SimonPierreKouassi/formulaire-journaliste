@@ -89,7 +89,7 @@ const Accueil: React.FC = () => {
           <div className="pt-10">
             <button
               onClick={() => navigate('/identification')}
-              className="text-gray-600 bg-green-400 hover:bg-green-700 border border-green-200 font-medium py-3 px-6 rounded-lg transition-all flex items-center gap-2 mx-auto hover:text-green-700"
+              className="text-gray-600 bg-green-400 hover:bg-green-700 hover:text-white border border-green-200 font-medium py-3 px-6 rounded-lg transition-all flex items-center gap-2 mx-auto"
             >
               <Shield className="w-4 h-4" />
               Vous êtes Jury ou Secrétaire Technique ?

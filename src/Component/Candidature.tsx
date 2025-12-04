@@ -23,9 +23,11 @@ const FormulaireCandidat: React.FC = () => {
     
     // Étape 2 - Soumission
     titreRealisation: '',
-    categorie: '',
+    bibliographie: '',
+    categorie: '',  // Ce champ n'est plus utilisé dans la nouvelle structure mais gardé pour compatibilité
     descriptionGenerale: '',
     liensRealisation: [],
+    participePrixJeune: false,
     
     // Étape 3 - Déclarations
     acceptationReglement: false,
@@ -74,6 +76,13 @@ const FormulaireCandidat: React.FC = () => {
   };
 
   const validerEtape = (): boolean => {
+    console.log('Validation étape', etapeActuelle, ':', {
+      liensRealisation: donneesFormulaire.liensRealisation,
+      descriptionGenerale: donneesFormulaire.descriptionGenerale,
+      liensValides: donneesFormulaire.liensRealisation.length > 0,
+      descriptionValide: donneesFormulaire.descriptionGenerale?.trim().length > 0
+    });
+    
     switch (etapeActuelle) {
       case 1:
         return !!donneesFormulaire.civilite && 
@@ -85,11 +94,36 @@ const FormulaireCandidat: React.FC = () => {
                !!donneesFormulaire.dateNaissance &&
                !!donneesFormulaire.nationalite;
       case 2:
-        // Validation pour plusieurs liens
-        return !!donneesFormulaire.titreRealisation && 
-               !!donneesFormulaire.categorie &&
-               donneesFormulaire.liensRealisation.length > 0 &&
-               donneesFormulaire.liensRealisation.every(lien => lien.url.trim() !== '');
+        // NOUVELLE VALIDATION CORRIGÉE :
+        // 1. Vérifier qu'il y a au moins une œuvre
+        { if (donneesFormulaire.liensRealisation.length === 0) {
+          console.log('Échec validation: Aucune œuvre ajoutée');
+          return false;
+        }
+        
+        // 2. Vérifier que toutes les œuvres ont une URL valide
+        const toutesLesOeuvresValides = donneesFormulaire.liensRealisation.every(lien => {
+          const urlValide = lien.url && lien.url.trim() !== '';
+          console.log('Vérification URL:', { url: lien.url, valide: urlValide });
+          return urlValide;
+        });
+        
+        if (!toutesLesOeuvresValides) {
+          console.log('Échec validation: Une ou plusieurs œuvres ont une URL invalide');
+          return false;
+        }
+        
+        // 3. Vérifier que la description générale est remplie
+        const descriptionValide = donneesFormulaire.descriptionGenerale && 
+                                  donneesFormulaire.descriptionGenerale.trim().length > 0;
+        
+        if (!descriptionValide) {
+          console.log('Échec validation: Description générale manquante');
+          return false;
+        }
+        
+        console.log('Validation étape 2 réussie!');
+        return true; }
       case 3:
         return donneesFormulaire.acceptationReglement && 
                donneesFormulaire.exactitudeInformations;
