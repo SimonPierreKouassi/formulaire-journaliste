@@ -8,7 +8,8 @@ export interface CandidatFormData {
   telephone: string;
   dateNaissance: string;      // Format: "JJ/MM/AAAA"
   nationalite: string;
-  linkedin: string;           // URL LinkedIn (optionnel)
+  linkedin: string;
+  carteProfessionnelle: string;      // URL LinkedIn (optionnel)
   
   // Étape 2 - Soumission
   titreRealisation: string;   // Ancien champ, gardé pour compatibilité

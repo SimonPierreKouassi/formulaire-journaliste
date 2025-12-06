@@ -249,24 +249,40 @@ const InformationsPersonnelles: React.FC<Props> = ({ donnees, onChampChange }) =
             </div>
             <h3 className="text-lg font-semibold text-gray-800">Profil professionnel</h3>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Catégorie du média *
-              </label>
-              <select
-                value={donnees.typeJournaliste}
-                onChange={(e) => onChampChange('typeJournaliste', e.target.value)}
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 focus:bg-white transition-all"
-                required
-              >
-                <option value="">Sélectionnez votre catégorie</option>
-                {typesJournaliste.map((type) => (
-                  <option key={type} value={type}>{type}</option>
-                ))}
-              </select>
-            </div>
+              
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Catégorie du média *
+                  </label>
+                  <select
+                    value={donnees.typeJournaliste}
+                    onChange={(e) => onChampChange('typeJournaliste', e.target.value)}
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 focus:bg-white transition-all"
+                    required
+                  >
+                    <option value="">Sélectionnez votre catégorie</option>
+                    {typesJournaliste.map((type) => (
+                      <option key={type} value={type}>{type}</option>
+                    ))}
+                  </select>
+                </div>
+              
+              <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Numéro de carte professionnelle *
+                  </label>
+                  <input
+                    type="text"
+                    value={donnees.carteProfessionnelle}
+                    onChange={(e) => onChampChange('carteProfessionnelle', e.target.value)}
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 focus:bg-white transition-all"
+                    placeholder="Votre carte professionnelle"
+                    required
+                  />
+              </div>
           </div>
+          
         </div>
 
         {/* Informations de validation */}

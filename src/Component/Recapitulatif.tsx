@@ -108,6 +108,13 @@ const Recapitulatif: React.FC<Props> = ({ donnees, onChampChange }) => {
                     {donnees.typeJournaliste || <span className="text-red-500">Non renseignée</span>}
                   </p>
                 </div>
+                <div>
+                  <span className="text-gray-600 text-xs font-medium uppercase tracking-wider">Numéro de carte professionnel</span>
+                  <p className="font-medium text-gray-800 mt-1 flex items-center gap-2">
+                    <Award className="w-3 h-3" />
+                    {donnees.carteProfessionnelle || <span className="text-red-500">Non renseignée</span>}
+                  </p>
+                </div>
                 {donnees.linkedin && (
                   <div>
                     <span className="text-gray-600 text-xs font-medium uppercase tracking-wider">Profil LinkedIn</span>

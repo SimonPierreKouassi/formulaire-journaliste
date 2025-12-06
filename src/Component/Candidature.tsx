@@ -20,6 +20,7 @@ const FormulaireCandidat: React.FC = () => {
     dateNaissance: '',      // Format: "JJ/MM/AAAA"
     nationalite: '',
     linkedin: '',
+    carteProfessionnelle: '',
     
     // Étape 2 - Soumission
     titreRealisation: '',
