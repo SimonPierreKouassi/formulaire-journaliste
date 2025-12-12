@@ -373,7 +373,7 @@ const SoumissionRealisation: React.FC<Props> = ({ donnees, onChampChange }) => {
             </div>
           )}
         </div>
-
+          
         {/* Section description générale (seulement si des œuvres sont ajoutées) */}
         {oeuvres.length > 0 && (
           <div className="space-y-6 pt-4 border-t border-gray-200">
